@@ -1,24 +1,37 @@
 {
-  "name": "image-host",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "next": "12.3.0",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
-  },
-  "devDependencies": {
-    "@types/node": "18.7.16",
-    "@types/react": "18.0.19",
-    "@types/react-dom": "18.0.6",
-    "eslint": "8.23.0",
-    "eslint-config-next": "12.3.0",
-    "typescript": "4.8.3"
-  }
+    "name": "image-host",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "generate": "prisma generate",
+        "dev": "yarn generate && next dev",
+        "build": "yarn generate && next build",
+        "start": "next start",
+        "lint": "next lint"
+    },
+    "dependencies": {
+        "@prisma/client": "^4.3.1",
+        "aws-sdk": "^2.1213.0",
+        "axios": "^0.27.2",
+        "formidable": "^2.0.1",
+        "md5": "^2.3.0",
+        "mime-types": "^2.1.35",
+        "nanoid": "^4.0.0",
+        "next": "12.3.0",
+        "react": "18.2.0",
+        "react-dom": "18.2.0",
+        "uuid": "^9.0.0"
+    },
+    "devDependencies": {
+        "@types/formidable": "^2.0.5",
+        "@types/md5": "^2.3.2",
+        "@types/mime-types": "^2.1.1",
+        "@types/node": "18.7.16",
+        "@types/react": "18.0.19",
+        "@types/react-dom": "18.0.6",
+        "@types/uuid": "^8.3.4",
+        "eslint": "8.23.0",
+        "eslint-config-next": "12.3.0",
+        "typescript": "4.8.3"
+    }
 }

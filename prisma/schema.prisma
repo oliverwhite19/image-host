@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Image {
+  id           String     @id @db.VarChar(255)
+  fileId       String     @db.VarChar(255)
+  visibility   Visibility @default(PROTECTED)
+  ownerId      Int?
+  owner        User?      @relation(fields: [ownerId], references: [id])
+  views        Int        @default(0)
+  hash         String     @db.VarChar(255)
+  lastViewedAt DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+  deletedAt DateTime?
+}
+
+model User {
+  id         Int       @unique @default(autoincrement())
+  identifier String    @id @db.VarChar(255)
+  images     Image[]
+  email      String?   @db.VarChar(255)
+  lastSeenAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now())
+}
+
+enum Visibility {
+  PUBLIC
+  PROTECTED
+  PRIVATE
+}
