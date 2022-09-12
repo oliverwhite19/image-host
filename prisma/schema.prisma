@@ -25,11 +25,17 @@ model Image {
 model User {
   id         Int       @unique @default(autoincrement())
   identifier String    @id @db.VarChar(255)
+  role       Role      @default(USER)
   images     Image[]
   email      String?   @db.VarChar(255)
   lastSeenAt DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @default(now())
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 
 enum Visibility {

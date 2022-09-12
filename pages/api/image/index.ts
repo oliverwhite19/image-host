@@ -1,12 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import S3 from 'aws-sdk/clients/s3';
 import { v4 as uuidv4 } from 'uuid';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, User } from '@prisma/client';
 import formidable, { File } from 'formidable';
 import fs from 'fs';
 import { uid } from '../../../libs/server/id.server';
 import md5 from 'md5';
 import mime from 'mime-types';
+import { getSession } from '@auth0/nextjs-auth0';
 
 const prisma = new PrismaClient();
 const s3 = new S3({
@@ -16,11 +17,16 @@ const s3 = new S3({
     signatureVersion: 'v4',
 });
 
-const index = async (req: NextApiRequest, res: NextApiResponse) => {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ message: 'Method not allowed' });
-    }
+const post = async (req: NextApiRequest, res: NextApiResponse) => {
     try {
+        const session = await getSession(req, res);
+        let user: User | null = null;
+        if (session) {
+            user = await prisma.user.findUnique({
+                where: { identifier: session.user.sub },
+            });
+        }
+
         const form = new formidable.IncomingForm();
         form.parse(req, async function (err, fields, files) {
             const file = files['image'] as File;
@@ -46,6 +52,7 @@ const index = async (req: NextApiRequest, res: NextApiResponse) => {
                     const image = await prisma.image.create({
                         data: {
                             id: `${uid()}.${fileExtension}`,
+                            ownerId: user?.id,
                             fileId: data.key,
                             hash,
                         },
@@ -56,6 +63,7 @@ const index = async (req: NextApiRequest, res: NextApiResponse) => {
                 const image = await prisma.image.create({
                     data: {
                         id: `${uid()}.${fileExtension}`,
+                        ownerId: user?.id,
                         fileId: sameHash.fileId,
                         hash,
                     },
@@ -66,6 +74,46 @@ const index = async (req: NextApiRequest, res: NextApiResponse) => {
     } catch (err) {
         console.log(err);
         res.status(400).json({ message: err });
+    }
+};
+
+const get = async (req: NextApiRequest, res: NextApiResponse) => {
+    try {
+        const session = await getSession(req, res);
+        if (!session) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        const user = await prisma.user.findUniqueOrThrow({
+            where: { identifier: session.user.sub },
+        });
+
+        const { page } = req.query;
+        const results = await prisma.image.findMany({
+            skip: page ? (Number(page) - 1) * 20 : 0,
+            take: 20,
+            where: { ownerId: user.id },
+        });
+        res.status(200).json(
+            results.map((result) => {
+                return {
+                    id: result.id,
+                    visibility: result.visibility,
+                    lastViewedAt: result.lastViewedAt,
+                };
+            })
+        );
+    } catch (err) {
+        console.log(err);
+        res.status(400).json({ message: err });
+    }
+};
+
+const index = async (req: NextApiRequest, res: NextApiResponse) => {
+    switch (req.method) {
+        case 'POST':
+            return post(req, res);
+        default:
+            return res.status(405).json({ message: 'Method not allowed' });
     }
 };
 
