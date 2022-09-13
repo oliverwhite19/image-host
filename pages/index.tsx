@@ -1,23 +1,34 @@
 /* eslint-disable @next/next/no-img-element */
 import { useUser } from '@auth0/nextjs-auth0';
+import {
+    Alert,
+    AppBar,
+    Avatar,
+    Button,
+    Card,
+    Container,
+    IconButton,
+    Stack,
+    Toolbar,
+    Typography,
+} from '@mui/material';
 import axios from 'axios';
 import type { NextPage } from 'next';
-import Head from 'next/head';
 import { useState } from 'react';
-import styles from '../styles/Home.module.css';
+import { Dropzone } from '../components/Dropzone/Dropzone';
+import { css } from '@emotion/css';
+import CloseIcon from '@mui/icons-material/Close';
+import MenuIcon from '@mui/icons-material/Menu';
 
 const Home: NextPage = () => {
-    const { user, error, isLoading } = useUser();
+    const { user } = useUser();
     const [file, setFile] = useState<any>();
+    const [openSuccess, setOpenSuccess] = useState(false);
     const [uploadingStatus, setUploadingStatus] = useState<any>();
     const [uploadedFile, setUploadedFile] = useState<any>();
 
-    const selectFile = (e: any) => {
-        setFile(e.target.files[0]);
-    };
-
     const uploadFile = async () => {
-        setUploadingStatus('Uploading the file to AWS S3');
+        setUploadingStatus('Uploading to the server...');
         const formData = new FormData();
         formData.append('image', file);
         let { data } = await axios.post('/api/image', formData, {
@@ -27,35 +38,116 @@ const Home: NextPage = () => {
         });
         setUploadedFile(`/api/image/${data.id}`);
         setFile(null);
+        setUploadingStatus(undefined);
+        setOpenSuccess(true);
     };
 
     return (
-        <div>
-            {user ? (
-                <div>
-                    <img src={user.picture ?? ''} alt={user.name ?? ''} />
-                    <h2>{user.name}</h2>
-                    <p>{user.email}</p>
-                    <a href="/api/auth/logout">Logout</a>
-                </div>
-            ) : (
-                <a href="/api/auth/login">Login</a>
-            )}
+        <>
+            <AppBar component="nav">
+                <Toolbar>
+                    <IconButton
+                        size="large"
+                        edge="start"
+                        color="inherit"
+                        aria-label="menu"
+                        sx={{ mr: 2 }}
+                    >
+                        <MenuIcon />
+                    </IconButton>
+                    <Typography
+                        variant="h6"
+                        component="div"
+                        sx={{ flexGrow: 1 }}
+                    >
+                        News
+                    </Typography>
+                    {user ? (
+                        <Button href="/api/auth/logout">Logout</Button>
+                    ) : (
+                        <Button href="/api/auth/login">Login</Button>
+                    )}
+                </Toolbar>
+            </AppBar>
 
-            <p>Please select a file to upload</p>
-            <input type="file" onChange={(e) => selectFile(e)} />
-            {file && (
-                <>
-                    <p>Selected file: {file.name}</p>
-
-                    <button onClick={uploadFile}>Upload a File!</button>
-                </>
-            )}
-            {uploadingStatus && <p>{uploadingStatus}</p>}
-            {uploadedFile && (
-                <img src={uploadedFile} alt="Your uploaded image" />
-            )}
-        </div>
+            <Container
+                maxWidth="sm"
+                className={css`
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100vh;
+                    width: 100vw;
+                `}
+            >
+                <Card variant="outlined">
+                    <Stack
+                        direction="column"
+                        justifyContent="space-around"
+                        alignItems="center"
+                        spacing={2}
+                        className={css`
+                            padding: 1rem;
+                            min-height: 25vh;
+                        `}
+                    >
+                        {openSuccess && (
+                            <Alert
+                                action={
+                                    <IconButton
+                                        aria-label="close"
+                                        color="inherit"
+                                        size="small"
+                                        onClick={() => {
+                                            setOpenSuccess(false);
+                                        }}
+                                    >
+                                        <CloseIcon fontSize="inherit" />
+                                    </IconButton>
+                                }
+                                sx={{ mb: 2 }}
+                            >
+                                File uploaded!
+                            </Alert>
+                        )}
+                        <Dropzone onDrop={(e) => setFile(e[0])} />
+                        {file && (
+                            <img
+                                src={URL.createObjectURL(file)}
+                                alt="preview"
+                                className={css`
+                                    max-height: 500px;
+                                    max-width: 500px;
+                                    height: auto;
+                                    width: auto;
+                                `}
+                            />
+                        )}
+                        {!file && uploadedFile && (
+                            <img
+                                src={uploadedFile}
+                                alt="Your uploaded image"
+                                className={css`
+                                    max-height: 500px;
+                                    max-width: 500px;
+                                    height: auto;
+                                    width: auto;
+                                `}
+                            />
+                        )}
+                        {uploadingStatus && (
+                            <Typography>{uploadingStatus}</Typography>
+                        )}
+                        {file && (
+                            <Button variant="contained" onClick={uploadFile}>
+                                Upload
+                            </Button>
+                        )}
+                    </Stack>
+                </Card>
+            </Container>
+        </>
     );
 };
 

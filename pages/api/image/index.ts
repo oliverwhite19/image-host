@@ -91,7 +91,8 @@ const get = async (req: NextApiRequest, res: NextApiResponse) => {
         const results = await prisma.image.findMany({
             skip: page ? (Number(page) - 1) * 20 : 0,
             take: 20,
-            where: { ownerId: user.id },
+            // where: { ownerId: user.id },
+            orderBy: { createdAt: 'desc' },
         });
         res.status(200).json(
             results.map((result) => {
