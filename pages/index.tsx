@@ -16,8 +16,10 @@ import { css } from '@emotion/css';
 import CloseIcon from '@mui/icons-material/Close';
 import { Menu } from '../components/Menu/Menu';
 import { Image } from '../components/Image/Image';
+import { useRouter } from 'next/router';
 
 const Home: NextPage = () => {
+    const router = useRouter();
     const [file, setFile] = useState<any>();
     const [openSuccess, setOpenSuccess] = useState(false);
     const [uploadingStatus, setUploadingStatus] = useState<any>();
@@ -36,6 +38,14 @@ const Home: NextPage = () => {
         setFile(null);
         setUploadingStatus(undefined);
         setOpenSuccess(true);
+        await navigator.clipboard.writeText(
+            `${
+                window.location.protocol +
+                '//' +
+                window.location.hostname +
+                (window.location.port ? ':' + window.location.port : '')
+            }/api/image/${data.id}`
+        );
     };
 
     return (
@@ -79,7 +89,7 @@ const Home: NextPage = () => {
                                 }
                                 sx={{ mb: 2 }}
                             >
-                                File uploaded!
+                                File uploaded! URL copied to your clipboard
                             </Alert>
                         )}
                         <Dropzone onDrop={(e) => setFile(e[0])} />

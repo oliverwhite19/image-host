@@ -41,6 +41,8 @@ const getFile = async (req: NextApiRequest, res: NextApiResponse) => {
         console.log(err);
         res.status(400).json({ message: err });
     }
+
+    await prisma.$disconnect();
 };
 
 export default getFile;

@@ -11,7 +11,7 @@ model Image {
   id           String     @id @db.VarChar(255)
   fileId       String     @db.VarChar(255)
   visibility   Visibility @default(PROTECTED)
-  ownerId      Int?
+  ownerId      Int?       @db.Int
   owner        User?      @relation(fields: [ownerId], references: [id])
   views        Int        @default(0)
   hash         String     @db.VarChar(255)

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { Menu } from '../components/Menu/Menu';
 import Grid2 from '@mui/material/Unstable_Grid2/Grid2';
 import { Image } from '../components/Image/Image';
+import Link from 'next/link';
 
 const Gallery = () => {
     const [images, setImages] = useState<{
@@ -46,13 +47,16 @@ const Gallery = () => {
                     {!isLoading &&
                         images?.images.map((image) => (
                             <Grid2 xs={2} sm={4} md={4} key={image.id}>
-                                <Image
-                                    src={`/api/image/${image.id}`}
-                                    alt="image"
-                                    className={css`
-                                        max-width: 100%;
-                                    `}
-                                />
+                                <Link href={`/image/${image.id}`}>
+                                    <Image
+                                        src={`/api/image/${image.id}`}
+                                        alt="image"
+                                        className={css`
+                                            max-width: 100%;
+                                            max-height: 100%;
+                                        `}
+                                    />
+                                </Link>
                             </Grid2>
                         ))}
                 </Grid2>

@@ -75,6 +75,7 @@ const post = async (req: NextApiRequest, res: NextApiResponse) => {
         console.log(err);
         res.status(400).json({ message: err });
     }
+    await prisma.$disconnect();
 };
 
 const get = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -91,11 +92,11 @@ const get = async (req: NextApiRequest, res: NextApiResponse) => {
         const results = await prisma.image.findMany({
             skip: page ? (Number(page) - 1) * 12 : 0,
             take: 12,
-            // where: { ownerId: user.id },
+            where: { ownerId: user.id },
             orderBy: { createdAt: 'desc' },
         });
         const imageCount = await prisma.image.count({
-            // where: { ownerId: user.id },
+            where: { ownerId: user.id },
         });
         res.status(200).json({
             images: results.map((result) => {
@@ -111,6 +112,7 @@ const get = async (req: NextApiRequest, res: NextApiResponse) => {
         console.log(err);
         res.status(400).json({ message: err });
     }
+    await prisma.$disconnect();
 };
 
 const index = async (req: NextApiRequest, res: NextApiResponse) => {
