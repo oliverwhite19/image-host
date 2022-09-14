@@ -1,15 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
-import { useUser } from '@auth0/nextjs-auth0';
 import {
     Alert,
-    AppBar,
-    Avatar,
     Button,
     Card,
     Container,
     IconButton,
     Stack,
-    Toolbar,
     Typography,
 } from '@mui/material';
 import axios from 'axios';
@@ -18,10 +14,10 @@ import { useState } from 'react';
 import { Dropzone } from '../components/Dropzone/Dropzone';
 import { css } from '@emotion/css';
 import CloseIcon from '@mui/icons-material/Close';
-import MenuIcon from '@mui/icons-material/Menu';
+import { Menu } from '../components/Menu/Menu';
+import { Image } from '../components/Image/Image';
 
 const Home: NextPage = () => {
-    const { user } = useUser();
     const [file, setFile] = useState<any>();
     const [openSuccess, setOpenSuccess] = useState(false);
     const [uploadingStatus, setUploadingStatus] = useState<any>();
@@ -44,32 +40,7 @@ const Home: NextPage = () => {
 
     return (
         <>
-            <AppBar component="nav">
-                <Toolbar>
-                    <IconButton
-                        size="large"
-                        edge="start"
-                        color="inherit"
-                        aria-label="menu"
-                        sx={{ mr: 2 }}
-                    >
-                        <MenuIcon />
-                    </IconButton>
-                    <Typography
-                        variant="h6"
-                        component="div"
-                        sx={{ flexGrow: 1 }}
-                    >
-                        News
-                    </Typography>
-                    {user ? (
-                        <Button href="/api/auth/logout">Logout</Button>
-                    ) : (
-                        <Button href="/api/auth/login">Login</Button>
-                    )}
-                </Toolbar>
-            </AppBar>
-
+            <Menu />
             <Container
                 maxWidth="sm"
                 className={css`
@@ -113,7 +84,7 @@ const Home: NextPage = () => {
                         )}
                         <Dropzone onDrop={(e) => setFile(e[0])} />
                         {file && (
-                            <img
+                            <Image
                                 src={URL.createObjectURL(file)}
                                 alt="preview"
                                 className={css`
@@ -125,7 +96,7 @@ const Home: NextPage = () => {
                             />
                         )}
                         {!file && uploadedFile && (
-                            <img
+                            <Image
                                 src={uploadedFile}
                                 alt="Your uploaded image"
                                 className={css`

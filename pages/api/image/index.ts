@@ -89,20 +89,24 @@ const get = async (req: NextApiRequest, res: NextApiResponse) => {
 
         const { page } = req.query;
         const results = await prisma.image.findMany({
-            skip: page ? (Number(page) - 1) * 20 : 0,
-            take: 20,
+            skip: page ? (Number(page) - 1) * 12 : 0,
+            take: 12,
             // where: { ownerId: user.id },
             orderBy: { createdAt: 'desc' },
         });
-        res.status(200).json(
-            results.map((result) => {
+        const imageCount = await prisma.image.count({
+            // where: { ownerId: user.id },
+        });
+        res.status(200).json({
+            images: results.map((result) => {
                 return {
                     id: result.id,
                     visibility: result.visibility,
                     lastViewedAt: result.lastViewedAt,
                 };
-            })
-        );
+            }),
+            pages: Math.ceil(imageCount / 12),
+        });
     } catch (err) {
         console.log(err);
         res.status(400).json({ message: err });
@@ -113,6 +117,8 @@ const index = async (req: NextApiRequest, res: NextApiResponse) => {
     switch (req.method) {
         case 'POST':
             return post(req, res);
+        case 'GET':
+            return get(req, res);
         default:
             return res.status(405).json({ message: 'Method not allowed' });
     }
