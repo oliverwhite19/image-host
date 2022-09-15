@@ -27,11 +27,6 @@ export const getServerSideProps = withPageAuthRequired({
     returnTo: '/',
     async getServerSideProps(ctx) {
         const prisma = new PrismaClient();
-        // access the user session
-        console.log(ctx);
-
-        ctx.query.id;
-
         const session = getSession(ctx.req, ctx.res);
         const user = await prisma.user.findUnique({
             where: {
