@@ -1,4 +1,4 @@
-import { UserProfile, withPageAuthRequired } from '@auth0/nextjs-auth0';
+import { withPageAuthRequired } from '@auth0/nextjs-auth0';
 import { Container, Pagination } from '@mui/material';
 import { css } from '@emotion/css';
 import { useEffect, useState } from 'react';
@@ -24,7 +24,6 @@ const Gallery = () => {
                 setLoading(false);
             });
     }, [page]);
-    console.log(images);
     return (
         <>
             <Menu />

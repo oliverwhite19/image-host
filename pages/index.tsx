@@ -19,7 +19,6 @@ import { Image } from '../components/Image/Image';
 import { useRouter } from 'next/router';
 
 const Home: NextPage = () => {
-    const router = useRouter();
     const [file, setFile] = useState<any>();
     const [openSuccess, setOpenSuccess] = useState(false);
     const [uploadingStatus, setUploadingStatus] = useState<any>();

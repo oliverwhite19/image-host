@@ -1,11 +1,14 @@
 import { getSession, withPageAuthRequired } from '@auth0/nextjs-auth0';
-import { CssTwoTone } from '@mui/icons-material';
+import { css } from '@emotion/css';
+import { Container } from '@mui/system';
 import { PrismaClient } from '@prisma/client';
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 import { Image } from '../../components/Image/Image';
 import { Menu } from '../../components/Menu/Menu';
 
 interface ImagePageProps {
-    image: {
+    image?: {
         id: string;
         visibility: string;
         createdAt: string;
@@ -14,11 +17,36 @@ interface ImagePageProps {
 }
 
 const ImagePage = ({ image }: ImagePageProps) => {
-    console.log(image);
+    const router = useRouter();
+    useEffect(() => {
+        if (!image) {
+            router.replace('/gallery');
+        }
+    }, [image, router]);
     return (
         <>
             <Menu />
-            <Image src={`/api/image/${image.id}`} alt="image" />
+
+            <Container
+                maxWidth="sm"
+                className={css`
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100vh;
+                    width: 100vw;
+                `}
+            >
+                <Image
+                    src={`/api/image/${image?.id}`}
+                    alt="image"
+                    className={css`
+                        max-width: 75%;
+                        max-height: 75%;
+                    `}
+                />
+            </Container>
         </>
     );
 };
@@ -43,12 +71,14 @@ export const getServerSideProps = withPageAuthRequired({
         prisma.$disconnect();
         return {
             props: {
-                image: {
-                    id: image?.id,
-                    visibility: image?.visibility,
-                    createdAt: image?.createdAt.toISOString(),
-                    updatedAt: image?.updatedAt.toISOString(),
-                },
+                image: image
+                    ? {
+                          id: image?.id,
+                          visibility: image?.visibility,
+                          createdAt: image?.createdAt.toISOString(),
+                          updatedAt: image?.updatedAt.toISOString(),
+                      }
+                    : null,
             },
         };
     },
