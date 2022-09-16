@@ -11,7 +11,7 @@ import { Header } from '../components/Header/Header';
 const Gallery = () => {
     const [images, setImages] = useState<{
         images: Array<{ id: string }>;
-        totalPages: number;
+        pages: number;
     } | null>(null);
     const [isLoading, setLoading] = useState(false);
     const [page, setPage] = useState(1);
@@ -55,15 +55,16 @@ const Gallery = () => {
                                         className={css`
                                             max-width: 100%;
                                             max-height: 100%;
+                                            cursor: pointer;
                                         `}
                                     />
                                 </Link>
                             </Grid2>
                         ))}
                 </Grid2>
-                {(images?.totalPages ?? 0) > 1 && (
+                {!isLoading && (images?.pages ?? 0) > 1 && (
                     <Pagination
-                        count={images?.totalPages}
+                        count={images?.pages}
                         page={page}
                         onChange={(
                             _: React.ChangeEvent<unknown>,

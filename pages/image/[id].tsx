@@ -1,5 +1,6 @@
 import { getSession, withPageAuthRequired } from '@auth0/nextjs-auth0';
 import { css } from '@emotion/css';
+import { Button, ButtonGroup } from '@mui/material';
 import { Container } from '@mui/system';
 import { PrismaClient } from '@prisma/client';
 import { useRouter } from 'next/router';
@@ -24,6 +25,14 @@ const ImagePage = ({ image }: ImagePageProps) => {
             router.replace('/gallery');
         }
     }, [image, router]);
+    const deleteFile = () => {
+        fetch(`/api/image/${image?.id}`, {
+            method: 'DELETE',
+        }).then(() => {
+            router.replace('/gallery');
+        });
+    };
+
     return (
         <>
             <Header title={'Image Upload'} />
@@ -47,6 +56,17 @@ const ImagePage = ({ image }: ImagePageProps) => {
                         max-height: 75%;
                     `}
                 />
+                <ButtonGroup
+                    variant="contained"
+                    aria-label="outlined primary button group"
+                    className={css`
+                        margin-top: 1rem;
+                    `}
+                >
+                    <Button onClick={deleteFile} color="error">
+                        Delete
+                    </Button>
+                </ButtonGroup>
             </Container>
         </>
     );

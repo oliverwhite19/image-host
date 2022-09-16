@@ -15,9 +15,8 @@ const heicToJpg = async (file: File) => {
     const inputBuffer = fs.readFileSync(file.filepath);
     const outputBuffer = await convert({
         buffer: inputBuffer, // the HEIC file buffer
-        format: 'PNG', // output format
+        format: 'JPEG', // output format
     });
-    console.log(outputBuffer);
     return arrayBufferToBuffer(outputBuffer);
 };
 
@@ -45,15 +44,15 @@ const post = async (req: NextApiRequest, res: NextApiResponse) => {
         form.parse(req, async function (err, fields, files) {
             try {
                 const file = files['image'] as File;
-                const fileExtension = mime.extension(file.mimetype ?? '');
                 if (!/(^image)(\/)[a-zA-Z0-9_]*/.test(file.mimetype ?? '')) {
                     return res.status(400).json({
                         message: 'Invalid file type',
                     });
                 }
-                if (file.mimetype === 'image/heic') {
-                    console.log('heic');
-                }
+                const fileExtension =
+                    file.mimetype === 'image/heic'
+                        ? 'jpg'
+                        : mime.extension(file.mimetype ?? '');
 
                 const fileParams = {
                     Bucket: process.env.BUCKET_NAME ?? '',
@@ -67,7 +66,7 @@ const post = async (req: NextApiRequest, res: NextApiResponse) => {
                 const hash = md5(fileParams.Body);
 
                 const sameHash = await prisma.image.findFirst({
-                    where: { hash },
+                    where: { hash, deleted: null },
                 });
                 if (!sameHash) {
                     // @ts-ignore-next-line
@@ -105,7 +104,6 @@ const post = async (req: NextApiRequest, res: NextApiResponse) => {
         console.log(err);
         res.status(400).json({ message: err });
     }
-    await prisma.$disconnect();
 };
 
 const get = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -122,11 +120,11 @@ const get = async (req: NextApiRequest, res: NextApiResponse) => {
         const results = await prisma.image.findMany({
             skip: page ? (Number(page) - 1) * 12 : 0,
             take: 12,
-            where: { ownerId: user.id },
+            where: { ownerId: user.id, deleted: null },
             orderBy: { createdAt: 'desc' },
         });
         const imageCount = await prisma.image.count({
-            where: { ownerId: user.id },
+            where: { ownerId: user.id, deleted: null },
         });
         res.status(200).json({
             images: results.map((result) => {
@@ -142,18 +140,20 @@ const get = async (req: NextApiRequest, res: NextApiResponse) => {
         console.log(err);
         res.status(400).json({ message: err });
     }
-    await prisma.$disconnect();
 };
 
 const index = async (req: NextApiRequest, res: NextApiResponse) => {
     switch (req.method) {
         case 'POST':
-            return post(req, res);
+            post(req, res);
+            break;
         case 'GET':
-            return get(req, res);
+            get(req, res);
+            break;
         default:
-            return res.status(405).json({ message: 'Method not allowed' });
+            res.status(405).json({ message: 'Method not allowed' });
     }
+    await prisma.$disconnect();
 };
 
 export const config = {
