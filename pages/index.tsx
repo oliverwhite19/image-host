@@ -16,13 +16,22 @@ import { css } from '@emotion/css';
 import CloseIcon from '@mui/icons-material/Close';
 import { Menu } from '../components/Menu/Menu';
 import { Image } from '../components/Image/Image';
-import { useRouter } from 'next/router';
-
+import { Header } from '../components/Header/Header';
 const Home: NextPage = () => {
     const [file, setFile] = useState<any>();
+    const [error, setError] = useState<string | null>(null);
     const [openSuccess, setOpenSuccess] = useState(false);
     const [uploadingStatus, setUploadingStatus] = useState<any>();
     const [uploadedFile, setUploadedFile] = useState<any>();
+
+    const handleFile = async (file: any) => {
+        const fileInMB = file.size / 1024 / 1024;
+        if (fileInMB > 10) {
+            setError('File size must be less than 10MB');
+        } else {
+            setFile(file);
+        }
+    };
 
     const uploadFile = async () => {
         setUploadingStatus('Uploading to the server...');
@@ -49,6 +58,7 @@ const Home: NextPage = () => {
 
     return (
         <>
+            <Header title={'Image Upload'} />
             <Menu />
             <Container
                 maxWidth="sm"
@@ -91,7 +101,12 @@ const Home: NextPage = () => {
                                 File uploaded! URL copied to your clipboard
                             </Alert>
                         )}
-                        <Dropzone onDrop={(e) => setFile(e[0])} />
+                        {error && (
+                            <Typography variant="h6" color="error">
+                                {error}
+                            </Typography>
+                        )}
+                        <Dropzone onDrop={(e) => handleFile(e[0])} />
                         {file && (
                             <Image
                                 src={URL.createObjectURL(file)}

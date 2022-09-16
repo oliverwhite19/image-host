@@ -4,7 +4,13 @@ import DZone from 'react-dropzone';
 
 const Dropzone: FC<{ onDrop: (acceptedFiles: any) => void }> = ({ onDrop }) => {
     return (
-        <DZone onDrop={onDrop}>
+        <DZone
+            onDrop={onDrop}
+            accept={{
+                'image/*': [],
+                '.heic': [],
+            }}
+        >
             {({ getRootProps, getInputProps }) => (
                 <div {...getRootProps()}>
                     <input {...getInputProps()} />

@@ -6,6 +6,7 @@ import { Menu } from '../components/Menu/Menu';
 import Grid2 from '@mui/material/Unstable_Grid2/Grid2';
 import { Image } from '../components/Image/Image';
 import Link from 'next/link';
+import { Header } from '../components/Header/Header';
 
 const Gallery = () => {
     const [images, setImages] = useState<{
@@ -26,6 +27,7 @@ const Gallery = () => {
     }, [page]);
     return (
         <>
+            <Header title={'Image Upload Gallery'} />
             <Menu />
             <Container
                 maxWidth="sm"

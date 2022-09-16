@@ -8,6 +8,18 @@ import { uid } from '../../../libs/server/id.server';
 import md5 from 'md5';
 import mime from 'mime-types';
 import { getSession } from '@auth0/nextjs-auth0';
+import convert from 'heic-convert';
+import arrayBufferToBuffer from 'arraybuffer-to-buffer';
+
+const heicToJpg = async (file: File) => {
+    const inputBuffer = fs.readFileSync(file.filepath);
+    const outputBuffer = await convert({
+        buffer: inputBuffer, // the HEIC file buffer
+        format: 'PNG', // output format
+    });
+    console.log(outputBuffer);
+    return arrayBufferToBuffer(outputBuffer);
+};
 
 const prisma = new PrismaClient();
 const s3 = new S3({
@@ -27,48 +39,66 @@ const post = async (req: NextApiRequest, res: NextApiResponse) => {
             });
         }
 
-        const form = new formidable.IncomingForm();
+        const form = new formidable.IncomingForm({
+            maxFileSize: 10 * 1024 * 1024,
+        });
         form.parse(req, async function (err, fields, files) {
-            const file = files['image'] as File;
-            const fileExtension = mime.extension(file.mimetype ?? '');
+            try {
+                const file = files['image'] as File;
+                const fileExtension = mime.extension(file.mimetype ?? '');
+                if (!/(^image)(\/)[a-zA-Z0-9_]*/.test(file.mimetype ?? '')) {
+                    return res.status(400).json({
+                        message: 'Invalid file type',
+                    });
+                }
+                if (file.mimetype === 'image/heic') {
+                    console.log('heic');
+                }
 
-            const fileParams = {
-                Bucket: process.env.BUCKET_NAME ?? '',
-                Key: `${uuidv4()}.${fileExtension}`,
-                ContentType: file.mimetype ?? '',
-                Body: fs.readFileSync(file.filepath),
-            };
-            const hash = md5(fileParams.Body);
+                const fileParams = {
+                    Bucket: process.env.BUCKET_NAME ?? '',
+                    Key: `${uuidv4()}.${fileExtension}`,
+                    ContentType: file.mimetype ?? '',
+                    Body:
+                        file.mimetype === 'image/heic'
+                            ? await heicToJpg(file)
+                            : fs.readFileSync(file.filepath),
+                };
+                const hash = md5(fileParams.Body);
 
-            const sameHash = await prisma.image.findFirst({
-                where: { hash },
-            });
-            if (!sameHash) {
-                // @ts-ignore-next-line
-                s3.upload(fileParams, async (_err, data) => {
-                    if (err) {
-                        throw err;
-                    }
+                const sameHash = await prisma.image.findFirst({
+                    where: { hash },
+                });
+                if (!sameHash) {
+                    // @ts-ignore-next-line
+                    s3.upload(fileParams, async (_err, data) => {
+                        if (err) {
+                            throw err;
+                        }
+                        const image = await prisma.image.create({
+                            data: {
+                                id: `${uid()}.${fileExtension}`,
+                                ownerId: user?.id,
+                                fileId: data.key,
+                                hash,
+                            },
+                        });
+                        res.status(200).json({ id: image.id });
+                    });
+                } else {
                     const image = await prisma.image.create({
                         data: {
                             id: `${uid()}.${fileExtension}`,
                             ownerId: user?.id,
-                            fileId: data.key,
+                            fileId: sameHash.fileId,
                             hash,
                         },
                     });
                     res.status(200).json({ id: image.id });
-                });
-            } else {
-                const image = await prisma.image.create({
-                    data: {
-                        id: `${uid()}.${fileExtension}`,
-                        ownerId: user?.id,
-                        fileId: sameHash.fileId,
-                        hash,
-                    },
-                });
-                res.status(200).json({ id: image.id });
+                }
+            } catch (err) {
+                console.log(err);
+                res.status(400).json({ message: err });
             }
         });
     } catch (err) {

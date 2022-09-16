@@ -4,6 +4,7 @@ import { Container } from '@mui/system';
 import { PrismaClient } from '@prisma/client';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
+import { Header } from '../../components/Header/Header';
 import { Image } from '../../components/Image/Image';
 import { Menu } from '../../components/Menu/Menu';
 
@@ -25,8 +26,8 @@ const ImagePage = ({ image }: ImagePageProps) => {
     }, [image, router]);
     return (
         <>
+            <Header title={'Image Upload'} />
             <Menu />
-
             <Container
                 maxWidth="sm"
                 className={css`
