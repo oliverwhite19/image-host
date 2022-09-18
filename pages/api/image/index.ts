@@ -56,7 +56,7 @@ const post = async (req: NextApiRequest, res: NextApiResponse) => {
 
                 const fileParams = {
                     Bucket: process.env.BUCKET_NAME ?? '',
-                    Key: `${uuidv4()}.${fileExtension}`,
+                    Key: `original/${uuidv4()}.${fileExtension}`,
                     ContentType: file.mimetype ?? '',
                     Body:
                         file.mimetype === 'image/heic'
