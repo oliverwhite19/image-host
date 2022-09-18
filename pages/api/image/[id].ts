@@ -92,13 +92,20 @@ const deleteImge = async (req: NextApiRequest, res: NextApiResponse) => {
                 Bucket: process.env.BUCKET_NAME ?? '',
                 Key: image.fileId,
             };
-            await s3.deleteObject(fileParams);
+            s3.deleteObject(fileParams, async (_error, _data) => {
+                await prisma.image.update({
+                    where: { id: image.id },
+                    data: { deleted: new Date() },
+                });
+                res.status(200).json({ message: 'Image deleted' });
+            });
+        } else {
+            await prisma.image.update({
+                where: { id: image.id },
+                data: { deleted: new Date() },
+            });
+            res.status(200).json({ message: 'Image deleted' });
         }
-        // await prisma.image.update({
-        //     where: { id: image.id },
-        //     data: { deleted: new Date() },
-        // });
-        res.status(200).json({ message: 'Image deleted' });
     } catch (err) {
         console.log(err);
         res.status(400).json({ message: err });
